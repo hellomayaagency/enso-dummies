@@ -76,6 +76,10 @@ class DummyFilter extends SelectFilter
      */
     protected function applyRestrictedQueryModifications(Builder $query): void
     {
-        $query->whereNotDummy();
+        if ($this->relationship_name) {
+            $this->applyAsRelationship($query, 'full');
+        } else {
+            $this->applyQueryModifications($query, 'full');
+        }
     }
 }
