@@ -1,6 +1,12 @@
 #!/usr/bin/env php
 <?php
 
+if (!function_exists('str_contains')) {
+    function str_contains($haystack, $needle) {
+        return $needle !== '' && mb_strpos($haystack, $needle) !== false;
+    }
+}
+
 function ask(string $question, string $default = ''): string
 {
     $answer = readline($question.($default ? " ({$default})" : null).': ');
@@ -75,7 +81,8 @@ function replace_in_file(string $file, array $replacements): void
 
 function remove_prefix(string $prefix, string $content): string
 {
-    if (str_starts_with($content, $prefix)) {
+    // if (str_starts_with($content, $prefix)) {
+    if (substr($content, 0, strlen($prefix)) === $prefix) {
         return substr($content, strlen($prefix));
     }
 
@@ -196,7 +203,8 @@ if (! confirm('Modify files?', true)) {
     exit(1);
 }
 
-$files = (str_starts_with(strtoupper(PHP_OS), 'WIN') ? replaceForWindows() : replaceForAllOtherOSes());
+// $files = (str_starts_with(strtoupper(PHP_OS), 'WIN') ? replaceForWindows() : replaceForAllOtherOSes());
+$files = (substr(strtoupper(PHP_OS), 0, strlen('WIN')) === 'WIN' ? replaceForWindows() : replaceForAllOtherOSes());
 
 foreach ($files as $file) {
     replace_in_file($file, [
@@ -216,16 +224,21 @@ foreach ($files as $file) {
         ':package_description' => $description,
     ]);
 
-    match (true) {
-        str_contains($file, determineSeparator('src/Skeleton.php')) => rename($file, determineSeparator('./src/'.$className.'.php')),
-        str_contains($file, determineSeparator('src/SkeletonServiceProvider.php')) => rename($file, determineSeparator('./src/'.$className.'ServiceProvider.php')),
-        str_contains($file, determineSeparator('src/Facades/Skeleton.php')) => rename($file, determineSeparator('./src/Facades/'.$className.'.php')),
-        str_contains($file, determineSeparator('src/Commands/SkeletonCommand.php')) => rename($file, determineSeparator('./src/Commands/'.$className.'Command.php')),
-        str_contains($file, determineSeparator('database/migrations/create_skeleton_table.php.stub')) => rename($file, determineSeparator('./database/migrations/create_'.title_snake($packageSlugWithoutPrefix).'_table.php.stub')),
-        str_contains($file, determineSeparator('config/skeleton.php')) => rename($file, determineSeparator('./config/'.$packageSlugWithoutPrefix.'.php')),
-        str_contains($file, 'README.md') => remove_readme_paragraphs($file),
-        default => [],
-    };
+    if (str_contains($file, determineSeparator('src/Skeleton.php'))) {
+        rename($file, determineSeparator('./src/'.$className.'.php'));
+    } elseif (str_contains($file, determineSeparator('src/SkeletonServiceProvider.php'))) {
+        rename($file, determineSeparator('./src/'.$className.'ServiceProvider.php'));
+    } elseif (str_contains($file, determineSeparator('src/Facades/Skeleton.php'))) {
+        rename($file, determineSeparator('./src/Facades/'.$className.'.php'));
+    } elseif (str_contains($file, determineSeparator('src/Commands/SkeletonCommand.php'))) {
+        rename($file, determineSeparator('./src/Commands/'.$className.'Command.php'));
+    } elseif (str_contains($file, determineSeparator('database/migrations/create_skeleton_table.php.stub'))) {
+        rename($file, determineSeparator('./database/migrations/create_'.title_snake($packageSlugWithoutPrefix).'_table.php.stub'));
+    } elseif (str_contains($file, determineSeparator('config/skeleton.php'))) {
+        rename($file, determineSeparator('./config/'.$packageSlugWithoutPrefix.'.php'));
+    } elseif (str_contains($file, 'README.md')) {
+        remove_readme_paragraphs($file);
+    }
 }
 
 if (! $useLaravelPint) {
