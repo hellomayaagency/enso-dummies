@@ -4,6 +4,7 @@ namespace Hellomayaagency\Enso\Dummies\Crud\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Str;
 use Yadda\Enso\Crud\Filters\BaseFilters\SelectFilter;
 
 class DummyFilter extends SelectFilter
@@ -41,6 +42,7 @@ class DummyFilter extends SelectFilter
         $this->setProps([
             'help-text' => 'Search for ' . $plural . ' in this state',
         ], true);
+        $this->access('access-dummy-' . strtolower(Str::kebab($plural)));
     }
 
     /**
